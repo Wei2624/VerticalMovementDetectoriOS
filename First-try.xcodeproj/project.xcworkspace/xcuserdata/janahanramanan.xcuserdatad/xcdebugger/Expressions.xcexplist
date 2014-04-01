@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VariablesViewState
+   version = "1.0">
+   <ContextStates>
+      <ContextState
+         contextName = "-[View2 CoordinatesStopper:]:View2.m">
+         <PersistentStrings>
+            <PersistentString
+               value = "self.text">
+            </PersistentString>
+            <PersistentString
+               value = "[settingsData writeToFile:filePath atomically:YES]">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "__28-[View2 startMyMotionDetect]_block_invoke_2:View2.m">
+         <PersistentStrings>
+            <PersistentString
+               value = "gravHistory">
+            </PersistentString>
+            <PersistentString
+               value = "Raw_RunningMean">
+            </PersistentString>
+            <PersistentString
+               value = "self.gravHistory">
+            </PersistentString>
+            <PersistentString
+               value = "filteredpoint">
+            </PersistentString>
+            <PersistentString
+               value = "[secondIntegral count]">
+            </PersistentString>
+            <PersistentString
+               value = "[[sensorInfoData accelKeySensorFiltered] count]">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "-[View2 viewDidLoad]:View2.m">
+         <PersistentStrings>
+            <PersistentString
+               value = "self.peripheralList">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+      <ContextState
+         contextName = "-[View2 centralManager:didDiscoverPeripheral:advertisementData:RSSI:]:View2.m">
+         <PersistentStrings>
+            <PersistentString
+               value = "self.peripheralList">
+            </PersistentString>
+            <PersistentString
+               value = "peripheral.name">
+            </PersistentString>
+            <PersistentString
+               value = "[text rangeOfString:peripheral.name].location">
+            </PersistentString>
+         </PersistentStrings>
+      </ContextState>
+   </ContextStates>
+</VariablesViewState>
