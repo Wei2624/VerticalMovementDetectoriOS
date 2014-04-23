@@ -12,6 +12,7 @@
 #import "E20SensorInfo.h"
 #import "E203dDataPoint.h"
 #import "E201dDataPoint.h"
+#import "E20BLESensorData.h"
 
 @interface View2 : UIViewController<UITableViewDelegate,UITableViewDataSource>
 {
@@ -46,6 +47,13 @@
 @property double avgThres;
 @property double avgWeight;
 
+@property double avgThres_flat;
+@property double avgThres_tilt;
+@property double avgThres_sided;
+@property double avgWeight_flat;
+@property double avgWeight_tilt;
+@property double avgWeight_sided;
+
 
 @property double pastMean;
 @property double currMean;
@@ -53,13 +61,34 @@
 @property (nonatomic,strong) NSMutableArray* Raw_RunningMean; //data of raw - running mean
 
 
+@property int meter_counter;
+@property NSMutableString* BLEsig;
+@property NSMutableDictionary* BLE_List;//this will store the string including name and signal strength
+@property NSDate* BLE_prevTime;
+@property NSDate* BLE_currTime;
+@property NSMutableDictionary* BLESig_List; //This stores signal strenght. Each object is an array containing E201d data point.
+@property NSMutableDictionary* BLEinRangeDeviceList;
+
+
 @property NSMutableArray* peripheralList;
 
 @property (retain, nonatomic) E20SensorInfo* sensorInfoData;  //stores all the filtered and manipulated data
+@property (retain, nonatomic) E20BLESensorData* BLEsensorData;
 
 @property int counterScanning;
 
 -(IBAction)CoordinatesGetter:(id)sender;
 -(IBAction)CoordinatesStopper:(id)sender;
 
+-(IBAction)MeterResponder_0M:(id)sender;
+-(IBAction)MeterResponder_1M:(id)sender;
+-(IBAction)MeterResponder_2M:(id)sender;
+-(IBAction)MeterResponder_3M:(id)sender;
+-(IBAction)MeterResponder_4M:(id)sender;
+-(IBAction)MeterResponder_5M:(id)sender;
+-(IBAction)MeterResponder_6M:(id)sender;
+-(IBAction)MeterResponder_7M:(id)sender;
+-(IBAction)MeterResponder_8M:(id)sender;
+-(IBAction)MeterResponder_9M:(id)sender;
+-(IBAction)MeterResponder_10M:(id)sender;
 @end

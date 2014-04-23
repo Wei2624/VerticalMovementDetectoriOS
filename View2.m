@@ -17,7 +17,7 @@
 
 # define filterLength 51
 # define samplingFreq 51
-# define secondIntegralInterval 70
+# define secondIntegralInterval 71
 # define upperBoundOfRaw_RunningMean 0.045
 # define lowerBoundOfRaw_RunningMean -0.045
 
@@ -37,10 +37,26 @@
 @synthesize avgThresPrep;
 @synthesize avgWeight;
 
+@synthesize avgThres_flat;
+@synthesize avgThres_sided;
+@synthesize avgThres_tilt;
+@synthesize avgWeight_flat;
+@synthesize avgWeight_sided;
+@synthesize avgWeight_tilt;
+
 @synthesize pastMean;
 @synthesize currMean;
 @synthesize raw_RunningMeanPrep;
 @synthesize Raw_RunningMean;
+
+@synthesize meter_counter;
+@synthesize BLEsig;
+@synthesize BLE_List;
+@synthesize BLE_currTime;
+@synthesize BLE_prevTime;
+@synthesize BLESig_List;
+@synthesize BLEsensorData;
+@synthesize BLEinRangeDeviceList;
 
 - (id)initWithNibName:(NSString *)nibNameOrNil bundle:(NSBundle *)nibBundleOrNil
 {
@@ -140,6 +156,9 @@
                                         //NSLog(@"first sum:%f",sum);
                                         E201dDataPoint *integral = [E201dDataPoint dataPointFromDouble:sum];
                                         [secondIntegral addObject:integral];
+                                        E201dDataPoint* gyroPlanarizedRawPoint = [sensorInfoData.gyroPlanarizedRaw objectAtIndex:0];
+                                        int phoneOrientation = gyroPlanarizedRawPoint.phoneOrientation;
+
                                         if ([secondIntegral count] >= secondIntegralInterval) {
                                             double secondSum = 0;
                                             for (int i = 0; i<[secondIntegral count]; i++) {
@@ -160,12 +179,24 @@
 //                                                    self.avgThres = total/200;
 //                                                }
 //                                            }
+                                                                                        if (phoneOrientation == 2) {   //flat case
+                                                avgThres = avgThres_flat;
+                                                avgWeight = avgWeight_flat;
+                                            }
+                                            else if (phoneOrientation == 1){   //tilt up case
+                                                avgThres = avgThres_tilt;
+                                                avgWeight = avgWeight_tilt;
+                                            }
+                                            else if (phoneOrientation == 0){    //sided case
+                                                avgThres = avgThres_sided;
+                                                avgWeight = avgWeight_sided;
+                                            }
                                             if (self.avgThres != 0) {        //when the avg is ready
                                                 double centralizedData = secondSum - self.avgThres;
-                                                if (centralizedData < -0.8) {
+                                                if (centralizedData < -1.1) {
                                                     state.text = @"Accelerating";
                                                 }
-                                                else if (centralizedData > 0.9){
+                                                else if (centralizedData > 1.1){
                                                     state.text = @"Decelerating";
                                                 }
                                                 else{
@@ -222,7 +253,6 @@
                                                     //avgThres value update
                                                     avgThres = avgThres*(avgWeight/(avgWeight + 1)) + secondSum/(avgWeight + 1);
                                                     avgWeight++;
-                                                    avgWeight++;
                                                     state.text = @"Standing";
                                                 }
                                                 else if ((min < lowerBoundOfRaw_RunningMean) && (max < upperBoundOfRaw_RunningMean)){
@@ -237,8 +267,6 @@
                                                     state.text = @"Walking";
                                                 }
                                                 
-//                                                E201dDataPoint* gyroPlanarizedRawPoint = [sensorInfoData.gyroPlanarizedRaw objectAtIndex:0];
-//                                                int phoneOrientation = gyroPlanarizedRawPoint.phoneOrientation;
 //                                                if (phoneOrientation == 0) {
 //                                                    if (secondSum > -97.00) {
 //                                                        state.text = @"Decelerating";
@@ -306,11 +334,25 @@
                                                 state.text = @"Decelerating";
                                             }
                                         }
+                                        if (phoneOrientation == 2) {   //flat case
+                                            avgThres_flat = avgThres;
+                                            avgWeight_flat = avgWeight;
+                                        }
+                                        else if (phoneOrientation == 1){   //tilt up case
+                                            avgThres_tilt = avgThres;
+                                            avgWeight_tilt = avgWeight;
+                                        }
+                                        else if (phoneOrientation == 0){    //sided case
+                                            avgThres_sided = avgThres;
+                                            avgWeight_sided = avgWeight;
+                                        }
                                     }
+                                    
                                 }
                                 
                                 
                             }
+                            
                             
                             static NSTimeInterval prevTime; //holds the timestamp of the last sensor interrupt
                             static dispatch_once_t once;
@@ -411,14 +453,24 @@
     [self setSecondIntegral:[[NSMutableArray alloc] init]];
     [self setHorizontalAccel:[[NSMutableArray alloc] init]];
     [self setGyroPlanarizedHistory:[[NSMutableArray alloc] init]];
+    
     [self setAvgThresPrep:[[NSMutableArray alloc] init]];
     [self setRaw_RunningMeanPrep:[[NSMutableArray alloc] init]];
     [self setRaw_RunningMean:[[NSMutableArray alloc] init]];
     self.avgThres = 0;
     self.numberOfSecondIntegral = 0;
     self.avgWeight = 0;
-    _centralManager = [[CBCentralManager alloc] initWithDelegate:self queue:nil];
-    _counterScanning = 0;
+    
+    self.avgThres = 0;
+    self.avgThres_tilt = 0;
+    self.avgThres_flat = 0;
+    self.avgThres_sided = 0;
+    
+    self.avgWeight = 0;
+    self.avgWeight_flat = 0;
+    self.avgWeight_tilt = 0;
+    self.avgWeight_sided = 0;
+    
     self.peripheralList = [[NSMutableArray alloc] init];
 //    NSString* first = @"first";
 //    NSString* second = @"second";
@@ -429,6 +481,17 @@
     self.table.dataSource = self;
     self.pastMean = 0;
     self.currMean = 0;
+    
+    self.meter_counter = 0;
+    self.BLEsig = [[NSMutableString alloc] init];
+    self.BLE_List = [[NSMutableDictionary alloc] init];
+    self.BLE_currTime = [[NSDate alloc] init];
+    self.BLE_prevTime = [[NSDate alloc] init];
+    self.BLESig_List = [[NSMutableDictionary alloc] init];
+    
+    self.BLEsensorData = [[E20BLESensorData alloc] init];
+    
+    self.BLEinRangeDeviceList = [[NSMutableDictionary alloc] init];
     
 }
 
@@ -449,7 +512,25 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:@"cell"];
     }
     
-    cell.textLabel.text = [self.peripheralList objectAtIndex:indexPath.row];
+    NSString* deviceInfo = [self.peripheralList objectAtIndex:indexPath.row];
+    if ([BLEinRangeDeviceList count] != 0) {
+        for (id key in BLEinRangeDeviceList) {
+            if ([deviceInfo rangeOfString:key].location != NSNotFound) {
+                NSNumber* inRangeCheck = [BLEinRangeDeviceList objectForKey:key];
+                if (inRangeCheck == [NSNumber numberWithBool:YES]) {
+                    cell.textLabel.text = deviceInfo;
+                    cell.textLabel.textColor = [UIColor redColor];
+                }
+                else{
+                    cell.textLabel.text = deviceInfo;
+                    cell.textLabel.textColor = [UIColor blackColor];
+                }
+            }
+        }
+    }
+    else{
+        cell.textLabel.text = deviceInfo;
+    }
     //cell.textLabel.text = @"first";
     
     return cell;
@@ -471,14 +552,15 @@
     if (central.state == CBCentralManagerStatePoweredOn) {
         // Scan for devices
         _counterScanning = 0;
-        NSTimer* myTimer = [NSTimer scheduledTimerWithTimeInterval:0.5f target:self selector:@selector(methodB:) userInfo:nil repeats:YES];
+//        NSTimer* myTimer = [NSTimer scheduledTimerWithTimeInterval:0.5f target:self selector:@selector(methodB:) userInfo:nil repeats:YES];
+        [_centralManager scanForPeripheralsWithServices:Nil options:@{ CBCentralManagerScanOptionAllowDuplicatesKey : @YES }];
         
     }
 }
 
 - (void) methodB:(NSTimer*)timer
 {
-    if(_counterScanning%3==0 || _counterScanning%4==0){
+    if(_counterScanning%2==0 || _counterScanning%4==0){
         [_centralManager scanForPeripheralsWithServices:Nil options:@{ CBCentralManagerScanOptionAllowDuplicatesKey : @YES }];
         NSLog(@"Scanning started");
     }
@@ -492,8 +574,46 @@
 }
 
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI {
-    if (peripheral.name != Nil) {
+    if (peripheral.name != Nil && [peripheral.name rangeOfString:@"RF"].location != NSNotFound) {
+//        BLE_currTime = [NSDate date];
+//        NSLog(@"%f",[BLE_currTime timeIntervalSinceDate:BLE_prevTime]);
+//        BLE_prevTime = BLE_currTime;
+        NSArray *filterParam = [NSArray arrayWithObjects:
+                                [NSNumber numberWithInteger:10],
+                                [NSNumber numberWithDouble:1.1],
+                                [NSNumber numberWithDouble:1.2],
+                                [NSNumber numberWithDouble:10],nil];
         NSString *textString = [NSString stringWithFormat:@"Discovered %@ at strength: %f", peripheral.name, [RSSI doubleValue]];
+        NSMutableString* deviceInfo = [[NSMutableString alloc] init];
+        NSMutableArray* signalInfo = [[NSMutableArray alloc] init];
+        BLE_currTime = [NSDate date];
+        NSDateFormatter *outputFormatter = [[NSDateFormatter alloc] init];
+        [outputFormatter setDateFormat:@"hh:mm:ss a"];
+        NSString *newDateString = [outputFormatter stringFromDate:BLE_currTime];
+        //NSLog(@"system time: %@",newDateString);
+        if ([BLE_List objectForKey:[NSString stringWithFormat:@"%@",peripheral.name]] == Nil) {
+            [deviceInfo appendFormat:@"%@,%d,%f\n",newDateString,meter_counter,[RSSI doubleValue]];
+            [BLE_List setObject:deviceInfo forKey:[NSString stringWithFormat:@"%@",peripheral.name]];
+        }
+        else{
+            deviceInfo = [BLE_List objectForKey:[NSString stringWithFormat:@"%@",peripheral.name]];
+            [deviceInfo appendFormat:@"%@,%d,%f\n",newDateString,meter_counter,[RSSI doubleValue]];
+            [BLE_List setObject:deviceInfo forKey:[NSString stringWithFormat:@"%@",peripheral.name]];
+        }
+        if ([BLESig_List objectForKey:[NSString stringWithFormat:@"%@",peripheral.name]] == Nil) {
+            E201dDataPoint* aDevice = [E201dDataPoint dataPointFromDouble:[RSSI doubleValue]];
+            [signalInfo addObject:aDevice];
+            [BLESig_List setObject:signalInfo forKey:[NSString stringWithFormat:@"%@", peripheral.name]];
+        }
+        else{
+            signalInfo = [BLESig_List objectForKey:[NSString stringWithFormat:@"%@",peripheral.name]];
+            E201dDataPoint* aDevice = [E201dDataPoint dataPointFromDouble:[RSSI doubleValue]];
+            [signalInfo addObject:aDevice];
+            if ([signalInfo count] > filterLengthOfBLE) {
+                [signalInfo removeObjectAtIndex:0];
+            }
+            [BLESig_List setObject:signalInfo forKey:[NSString stringWithFormat:@"%@",peripheral.name]];
+        }
         int index = -1;
         for (int i = 0 ; i < [self.peripheralList count];i++) {
             NSString* text = [self.peripheralList objectAtIndex:i];
@@ -508,8 +628,41 @@
         else{
             [self.peripheralList addObject:textString];
         }
+        NSMutableArray* deviceUpdated = [BLESig_List objectForKey:[NSString stringWithFormat:@"%@",peripheral.name]];
+        if ([deviceUpdated count] >= filterLengthOfBLE) {
+            [E20BLESensorData set1dRawAndFilteredValueWithInput:deviceUpdated withFilterParam:filterParam forRawDictionary:BLEsensorData.BLESignalRaw_dict filterDictionary:BLEsensorData.BLESignalFilter_dict keyName:[NSString stringWithFormat:@"%@",peripheral.name]];
+            NSString* inRangeDevice = [E20BLESensorData bleDistanceDetectionWithFilteredDictionary:BLEsensorData.BLESignalFilter_dict forKey:[NSString stringWithFormat:@"%@",peripheral.name]];
+            if (inRangeDevice != Nil) {
+                BOOL inRange = YES;
+                [BLEinRangeDeviceList setObject:[NSNumber numberWithBool:inRange] forKey:inRangeDevice];
+            }
+            else{
+                BOOL inRange = NO;
+                [BLEinRangeDeviceList setObject:[NSNumber numberWithBool:inRange] forKey:[NSString stringWithFormat:@"%@",peripheral.name]];
+            }
+            //NSLog(@"%@",inRangeDevice);
+//            NSMutableArray* bleFilterData =[BLEsensorData.BLESignalFilter_dict objectForKey:[NSString stringWithFormat:@"%@",peripheral.name]];
+//            NSLog(@"%lu",(unsigned long)[bleFilterData count]);
+//            if ([bleFilterData count] >= maxBLESensorDataStored) {
+//                NSMutableArray* oneDeviceFilter = [BLEsensorData.BLESignalFilter_dict objectForKey:[NSString stringWithFormat:@"%@",peripheral.name]];
+//                double first_sum = 0;
+//                for (E201dDataPoint* dataPoint in oneDeviceFilter) {
+//                    first_sum += dataPoint.value;
+//                }
+//                if (first_sum > -15.0) {
+//                    BOOL inRange = YES;
+//                    [BLEinRangeDeviceList setObject:[NSNumber numberWithBool:inRange] forKey:[NSString stringWithFormat:@"%@",peripheral.name]];
+//                }
+//                else{
+//                    BOOL inRange = NO;
+//                    [BLEinRangeDeviceList setObject:[NSNumber numberWithBool:inRange] forKey:[NSString stringWithFormat:@"%@",peripheral.name]];
+//                }
+//            }
+        }
+        [self.table reloadData];
+        [_centralManager stopScan];
+        [_centralManager scanForPeripheralsWithServices:Nil options:@{ CBCentralManagerScanOptionAllowDuplicatesKey : @YES }];
     }
-    [self.table reloadData];
 }
 
 - (void)didReceiveMemoryWarning
@@ -522,6 +675,10 @@
 {
     self.text = [NSMutableString stringWithFormat:@"Time,GyroX,GyroY,GyroZ,GravX,GravY,GravZ,AccelX,AccelY,AccelZ"];
     sensorInfoData = [[E20SensorInfo alloc] init];
+    _centralManager = [[CBCentralManager alloc] initWithDelegate:self queue:nil];
+    _counterScanning = 0;
+    BLE_currTime = [NSDate date];
+    BLE_prevTime = BLE_currTime;
     [self startMyMotionDetect];
     
 }
@@ -529,13 +686,10 @@
 
 -(IBAction)CoordinatesStopper:(id)sender;
 {
-    [self.raw_RunningMeanPrep removeAllObjects];
-    [self.Raw_RunningMean removeAllObjects];
-    self.pastMean = 0;
-    self.currMean = 0;
     [self.motionManager stopDeviceMotionUpdates];
     [self.motionManager stopAccelerometerUpdates];
     [self.motionManager stopGyroUpdates];
+    [_centralManager stopScan];
     NSArray *paths = NSSearchPathForDirectoriesInDomains(NSDocumentDirectory,  NSUserDomainMask, YES);
     NSString *documentsDirectoryPath = [paths objectAtIndex:0];
     NSString *filePath= nil;
@@ -550,7 +704,55 @@
     settingsData = [self.text dataUsingEncoding: NSASCIIStringEncoding];
     
     [settingsData writeToFile:filePath atomically:YES];
-
+    
+    
+    for (id key in BLE_List) {
+        NSMutableString* aDeviceInfo = [BLE_List objectForKey:key];
+        NSMutableString* output_text = [[NSMutableString alloc] init];
+        [output_text appendFormat:@"%@\n",key];
+        NSString* pathComp = [output_text stringByAppendingString:myDateString];
+        filePath = [documentsDirectoryPath  stringByAppendingPathComponent:[pathComp stringByAppendingString:@".csv"]];
+        [output_text appendString:aDeviceInfo];
+        
+        settingsData = [output_text dataUsingEncoding: NSASCIIStringEncoding];
+        
+        [settingsData writeToFile:filePath atomically:YES];
+    }
+    [self.raw_RunningMeanPrep removeAllObjects];
+    [self.Raw_RunningMean removeAllObjects];
+    [self setGravHistory:[[NSMutableArray alloc] init]];
+    [self setGyroHistory:[[NSMutableArray alloc] init]];
+    [self setAccelHistory:[[NSMutableArray alloc] init]];
+    [self setKeySensorInfo:[[NSMutableArray alloc] init]];
+    [self setSecondIntegral:[[NSMutableArray alloc] init]];
+    [self setHorizontalAccel:[[NSMutableArray alloc] init]];
+    [self setGyroPlanarizedHistory:[[NSMutableArray alloc] init]];
+    
+    [self setAvgThresPrep:[[NSMutableArray alloc] init]];
+    [self setRaw_RunningMeanPrep:[[NSMutableArray alloc] init]];
+    [self setRaw_RunningMean:[[NSMutableArray alloc] init]];
+    self.avgThres = 0;
+    self.numberOfSecondIntegral = 0;
+    self.avgWeight = 0;
+    
+    self.avgThres = 0;
+    self.avgThres_tilt = 0;
+    self.avgThres_flat = 0;
+    self.avgThres_sided = 0;
+    
+    self.avgWeight = 0;
+    self.avgWeight_flat = 0;
+    self.avgWeight_tilt = 0;
+    self.avgWeight_sided = 0;
+    
+    self.peripheralList = [[NSMutableArray alloc] init];
+    
+    self.meter_counter = 0;
+    self.BLEsig = [[NSMutableString alloc] init];
+    self.BLE_List = [[NSMutableDictionary alloc] init];
+    
+    self.pastMean = 0;
+    self.currMean = 0;
     
 }
 
@@ -567,6 +769,40 @@
     return motionManager;
 }
 
+
+-(IBAction)MeterResponder_0M:(id)sender{
+    meter_counter = 0;
+}
+-(IBAction)MeterResponder_1M:(id)sender{
+    meter_counter = 1;
+}
+-(IBAction)MeterResponder_2M:(id)sender{
+    meter_counter = 2;
+}
+-(IBAction)MeterResponder_3M:(id)sender{
+    meter_counter = 3;
+}
+-(IBAction)MeterResponder_4M:(id)sender{
+    meter_counter = 4;
+}
+-(IBAction)MeterResponder_5M:(id)sender{
+    meter_counter = 5;
+}
+-(IBAction)MeterResponder_6M:(id)sender{
+    meter_counter = 6;
+}
+-(IBAction)MeterResponder_7M:(id)sender{
+    meter_counter = 7;
+}
+-(IBAction)MeterResponder_8M:(id)sender{
+    meter_counter = 8;
+}
+-(IBAction)MeterResponder_9M:(id)sender{
+    meter_counter = 9;
+}
+-(IBAction)MeterResponder_10M:(id)sender{
+    meter_counter = 10;
+}
 
 
 

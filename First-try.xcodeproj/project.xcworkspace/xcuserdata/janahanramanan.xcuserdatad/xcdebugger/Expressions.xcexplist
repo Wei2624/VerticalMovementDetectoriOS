@@ -17,7 +17,7 @@
          contextName = "__28-[View2 startMyMotionDetect]_block_invoke_2:View2.m">
          <PersistentStrings>
             <PersistentString
-               value = "gravHistory">
+               value = "[[sensorInfoData accelKeySensorFiltered] count]">
             </PersistentString>
             <PersistentString
                value = "Raw_RunningMean">
@@ -32,7 +32,7 @@
                value = "[secondIntegral count]">
             </PersistentString>
             <PersistentString
-               value = "[[sensorInfoData accelKeySensorFiltered] count]">
+               value = "gravHistory">
             </PersistentString>
          </PersistentStrings>
       </ContextState>
@@ -51,10 +51,19 @@
                value = "self.peripheralList">
             </PersistentString>
             <PersistentString
+               value = "[text rangeOfString:peripheral.name].location">
+            </PersistentString>
+            <PersistentString
                value = "peripheral.name">
             </PersistentString>
             <PersistentString
-               value = "[text rangeOfString:peripheral.name].location">
+               value = "[BLEsensorData.BLESignalFilter_dict objectForKey:[NSString stringWithFormat:@&quot;%@&quot;,peripheral.name]] ">
+            </PersistentString>
+            <PersistentString
+               value = "BLESig_List">
+            </PersistentString>
+            <PersistentString
+               value = "maxSensorHistoryStored">
             </PersistentString>
          </PersistentStrings>
       </ContextState>

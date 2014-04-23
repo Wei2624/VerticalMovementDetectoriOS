@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9B00D4D91906ACCB00F4D986 /* E20BLESensorData.mm in Sources */ = {isa = PBXBuildFile; fileRef = 9B00D4D81906ACCB00F4D986 /* E20BLESensorData.mm */; };
 		9B931BBB187C70FA00DDD705 /* CoreMotion.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9B931BBA187C70FA00DDD705 /* CoreMotion.framework */; };
 		9BDBB7BC187B431400E166D9 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BDBB7BB187B431400E166D9 /* Foundation.framework */; };
 		9BDBB7BE187B431400E166D9 /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 9BDBB7BD187B431400E166D9 /* CoreGraphics.framework */; };
@@ -40,6 +41,8 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		9B00D4D71906ACCB00F4D986 /* E20BLESensorData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = E20BLESensorData.h; path = "First-try/E20BLESensorData.h"; sourceTree = "<group>"; };
+		9B00D4D81906ACCB00F4D986 /* E20BLESensorData.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = E20BLESensorData.mm; path = "First-try/E20BLESensorData.mm"; sourceTree = "<group>"; };
 		9B931BBA187C70FA00DDD705 /* CoreMotion.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreMotion.framework; path = System/Library/Frameworks/CoreMotion.framework; sourceTree = SDKROOT; };
 		9BDBB7B8187B431400E166D9 /* First-try.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "First-try.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BDBB7BB187B431400E166D9 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -184,6 +187,8 @@
 				9BEAC90218A3DCCC00AD2AE2 /* E201dDataPoint.m */,
 				9BEAC90318A3DCCC00AD2AE2 /* E203dDataPoint.h */,
 				9BEAC90418A3DCCC00AD2AE2 /* E203dDataPoint.m */,
+				9B00D4D71906ACCB00F4D986 /* E20BLESensorData.h */,
+				9B00D4D81906ACCB00F4D986 /* E20BLESensorData.mm */,
 			);
 			name = Sensor;
 			sourceTree = "<group>";
@@ -289,6 +294,7 @@
 				9BDBB7D2187B431400E166D9 /* E20ViewController.m in Sources */,
 				9BEAC90518A3DCCC00AD2AE2 /* E20SensorInfo.mm in Sources */,
 				9BEAC90718A3DCCC00AD2AE2 /* E203dDataPoint.m in Sources */,
+				9B00D4D91906ACCB00F4D986 /* E20BLESensorData.mm in Sources */,
 				9BDBB7CC187B431400E166D9 /* E20AppDelegate.m in Sources */,
 				9BDBB7C8187B431400E166D9 /* main.m in Sources */,
 				9BDBB800187B5ADA00E166D9 /* View2.m in Sources */,
